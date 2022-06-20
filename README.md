@@ -9,7 +9,7 @@
 ## Build
 
 * `go build`
-* Alternatively, you can grab the latest nightly from Circle CI by logging into Circle CI or adding `#artifacts` at the end of URL like such: https://circleci.com/gh/shadowsocks/v2ray-plugin/20#artifacts
+* Alternatively, you can grab the latest nightly from Circle CI by logging into Circle CI or adding `#artifacts` at the end of URL like such: https://app.circleci.com/pipelines/github/AotoriChiaki/v2ray-plugin
 
 ## Usage
 

@@ -38,6 +38,7 @@ import (
 
 var (
 	VERSION = "custom"
+)
 
 var (
 	vpn         = flag.Bool("V", false, "Run in VPN mode.")

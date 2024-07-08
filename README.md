@@ -1,8 +1,8 @@
-## Yet another SIP003 plugin for shadowsocks, based on [v2ray](https://github.com/v2fly/v2ray-core)
+## Yet another SIP003 plugin for shadowsocks, based on [V2Ray](https://github.com/v2fly/v2ray-core)
 
 [![CircleCI](https://circleci.com/gh/shadowsocks/v2ray-plugin.svg?style=shield)](https://circleci.com/gh/shadowsocks/v2ray-plugin)
 [![Releases](https://img.shields.io/github/downloads/shadowsocks/v2ray-plugin/total.svg)](https://github.com/shadowsocks/v2ray-plugin/releases)
-[![Language: Go](https://img.shields.io/badge/go-1.13+-blue.svg)](https://github.com/shadowsocks/v2ray-plugin/search?l=go)
+[![Language: Go](https://img.shields.io/badge/go-1.20+-blue.svg)](https://github.com/shadowsocks/v2ray-plugin/search?l=go)
 [![Go Report Card](https://goreportcard.com/badge/github.com/shadowsocks/v2ray-plugin)](https://goreportcard.com/report/github.com/shadowsocks/v2ray-plugin)
 [![License](https://img.shields.io/github/license/shadowsocks/v2ray-plugin.svg)](LICENSE)
 
@@ -31,7 +31,7 @@ On your client
 ss-local -c config.json -p 80 --plugin v2ray-plugin
 ```
 
-### Shadowsocks over websocket (HTTPS)
+### Shadowsocks over websocket with TLS (HTTPS)
 
 On your server
 
@@ -45,7 +45,7 @@ On your client
 ss-local -c config.json -p 443 --plugin v2ray-plugin --plugin-opts "tls;host=mydomain.me"
 ```
 
-### Shadowsocks over quic
+### Shadowsocks over QUIC
 
 On your server
 
@@ -57,6 +57,34 @@ On your client
 
 ```sh
 ss-local -c config.json -p 443 --plugin v2ray-plugin --plugin-opts "mode=quic;host=mydomain.me"
+```
+
+### Shadowsocks over gRPC
+
+On your server
+
+```sh
+ss-server -c config.json -p 443 --plugin v2ray-plugin --plugin-opts "server;mode=grpc"
+```
+
+On your client
+
+```sh
+ss-local -c config.json -p 443 --plugin v2ray-plugin --plugin-opts "mode=grpc"
+```
+
+### Shadowsocks over gRPC with TLS
+
+On your server
+
+```sh
+ss-server -c config.json -p 443 --plugin v2ray-plugin --plugin-opts "server;mode=grpc;tls;host=mydomain.me"
+```
+
+On your client
+
+```sh
+ss-local -c config.json -p 443 --plugin v2ray-plugin --plugin-opts "tls;mode=grpc;host=mydomain.me"
 ```
 
 ### Issue a cert for TLS and QUIC

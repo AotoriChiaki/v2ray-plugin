@@ -12,49 +12,53 @@ import (
 	"syscall"
 
 	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 
-	_ "github.com/v2fly/v2ray-core/v4/app/proxyman/inbound"
-	_ "github.com/v2fly/v2ray-core/v4/app/proxyman/outbound"
+	_ "github.com/v2fly/v2ray-core/v5/app/proxyman/inbound"
+	_ "github.com/v2fly/v2ray-core/v5/app/proxyman/outbound"
 
-	core "github.com/v2fly/v2ray-core/v4"
-	vlog "github.com/v2fly/v2ray-core/v4/app/log"
-	clog "github.com/v2fly/v2ray-core/v4/common/log"
+	core "github.com/v2fly/v2ray-core/v5"
+	vlog "github.com/v2fly/v2ray-core/v5/app/log"
+	clog "github.com/v2fly/v2ray-core/v5/common/log"
 
-	"github.com/v2fly/v2ray-core/v4/app/dispatcher"
-	"github.com/v2fly/v2ray-core/v4/app/proxyman"
-	"github.com/v2fly/v2ray-core/v4/common/net"
-	"github.com/v2fly/v2ray-core/v4/common/platform/filesystem"
-	"github.com/v2fly/v2ray-core/v4/common/protocol"
-	"github.com/v2fly/v2ray-core/v4/common/serial"
-	"github.com/v2fly/v2ray-core/v4/proxy/dokodemo"
-	"github.com/v2fly/v2ray-core/v4/proxy/freedom"
-	"github.com/v2fly/v2ray-core/v4/transport/internet"
-	"github.com/v2fly/v2ray-core/v4/transport/internet/quic"
-	"github.com/v2fly/v2ray-core/v4/transport/internet/tls"
-	"github.com/v2fly/v2ray-core/v4/transport/internet/websocket"
+	"github.com/v2fly/v2ray-core/v5/app/dispatcher"
+	"github.com/v2fly/v2ray-core/v5/app/proxyman"
+	"github.com/v2fly/v2ray-core/v5/common/net"
+	"github.com/v2fly/v2ray-core/v5/common/platform/filesystem"
+	"github.com/v2fly/v2ray-core/v5/common/protocol"
+	"github.com/v2fly/v2ray-core/v5/common/serial"
+	"github.com/v2fly/v2ray-core/v5/proxy/dokodemo"
+	"github.com/v2fly/v2ray-core/v5/proxy/freedom"
+	"github.com/v2fly/v2ray-core/v5/transport/internet"
+	"github.com/v2fly/v2ray-core/v5/transport/internet/grpc"
+	"github.com/v2fly/v2ray-core/v5/transport/internet/quic"
+	"github.com/v2fly/v2ray-core/v5/transport/internet/tls"
+	"github.com/v2fly/v2ray-core/v5/transport/internet/websocket"
 )
 
 var (
 	VERSION = "custom"
 
-	vpn        = flag.Bool("V", false, "Run in VPN mode.")
-	fastOpen   = flag.Bool("fast-open", false, "Enable TCP fast open.")
-	localAddr  = flag.String("localAddr", "127.0.0.1", "local address to listen on.")
-	localPort  = flag.String("localPort", "1984", "local port to listen on.")
-	remoteAddr = flag.String("remoteAddr", "127.0.0.1", "remote address to forward.")
-	remotePort = flag.String("remotePort", "1080", "remote port to forward.")
-	path       = flag.String("path", "/", "URL path for websocket.")
-	host       = flag.String("host", "cloudfront.com", "Hostname for server.")
-	tlsEnabled = flag.Bool("tls", false, "Enable TLS.")
-	cert       = flag.String("cert", "", "Path to TLS certificate file. Overrides certRaw. Default: ~/.acme.sh/{host}/fullchain.cer")
-	certRaw    = flag.String("certRaw", "", "Raw TLS certificate content. Intended only for Android.")
-	key        = flag.String("key", "", "(server) Path to TLS key file. Default: ~/.acme.sh/{host}/{host}.key")
-	mode       = flag.String("mode", "websocket", "Transport mode: websocket, quic (enforced tls).")
-	mux        = flag.Int("mux", 1, "Concurrent multiplexed connections (websocket client mode only).")
-	server     = flag.Bool("server", false, "Run in server mode")
-	logLevel   = flag.String("loglevel", "", "loglevel for v2ray: debug, info, warning (default), error, none.")
-	version    = flag.Bool("version", false, "Show current version of v2ray-plugin")
-	fwmark     = flag.Int("fwmark", 0, "Set SO_MARK option for outbound sockets.")
+var (
+	vpn         = flag.Bool("V", false, "Run in VPN mode.")
+	fastOpen    = flag.Bool("fast-open", false, "Enable TCP fast open.")
+	localAddr   = flag.String("localAddr", "127.0.0.1", "local address to listen on.")
+	localPort   = flag.String("localPort", "1984", "local port to listen on.")
+	remoteAddr  = flag.String("remoteAddr", "127.0.0.1", "remote address to forward.")
+	remotePort  = flag.String("remotePort", "1080", "remote port to forward.")
+	path        = flag.String("path", "/", "URL path for websocket.")
+	serviceName = flag.String("serviceName", "GunService", "Service name for grpc.")
+	host        = flag.String("host", "cloudfront.com", "Hostname for server.")
+	tlsEnabled  = flag.Bool("tls", false, "Enable TLS.")
+	cert        = flag.String("cert", "", "Path to TLS certificate file. Overrides certRaw. Default: ~/.acme.sh/{host}/fullchain.cer")
+	certRaw     = flag.String("certRaw", "", "Raw TLS certificate content. Intended only for Android.")
+	key         = flag.String("key", "", "(server) Path to TLS key file. Default: ~/.acme.sh/{host}/{host}.key")
+	mode        = flag.String("mode", "websocket", "Transport mode: websocket, quic (enforced tls), grpc.")
+	mux         = flag.Int("mux", 1, "Concurrent multiplexed connections (websocket client mode only).")
+	server      = flag.Bool("server", false, "Run in server mode")
+	logLevel    = flag.String("loglevel", "", "loglevel for v2ray: debug, info, warning (default), error, none.")
+	version     = flag.Bool("version", false, "Show current version of v2ray-plugin")
+	fwmark      = flag.Int("fwmark", 0, "Set SO_MARK option for outbound sockets.")
 )
 
 func homeDir() string {
@@ -81,21 +85,20 @@ func readCertificate() ([]byte, error) {
 
 func logConfig(logLevel string) *vlog.Config {
 	config := &vlog.Config{
-		ErrorLogLevel: clog.Severity_Warning,
-		ErrorLogType:  vlog.LogType_Console,
-		AccessLogType: vlog.LogType_Console,
+		Error:  &vlog.LogSpecification{Type: vlog.LogType_Console, Level: clog.Severity_Warning},
+		Access: &vlog.LogSpecification{Type: vlog.LogType_Console},
 	}
 	level := strings.ToLower(logLevel)
 	switch level {
 	case "debug":
-		config.ErrorLogLevel = clog.Severity_Debug
+		config.Error.Level = clog.Severity_Debug
 	case "info":
-		config.ErrorLogLevel = clog.Severity_Info
+		config.Error.Level = clog.Severity_Info
 	case "error":
-		config.ErrorLogLevel = clog.Severity_Error
+		config.Error.Level = clog.Severity_Error
 	case "none":
-		config.ErrorLogType = vlog.LogType_None
-		config.AccessLogType = vlog.LogType_None
+		config.Error.Type = vlog.LogType_None
+		config.Access.Type = vlog.LogType_None
 	}
 	return config
 }
@@ -140,8 +143,17 @@ func generateConfig() (*core.Config, error) {
 			Security: &protocol.SecurityConfig{Type: protocol.SecurityType_NONE},
 		}
 		*tlsEnabled = true
+	case "grpc":
+		transportSettings = &grpc.Config{
+			ServiceName: *serviceName,
+		}
 	default:
 		return nil, newError("unsupported mode:", *mode)
+	}
+
+	// hack v2ray-core grpc protocolName
+	if *mode == "grpc" {
+		*mode = "gun"
 	}
 
 	streamConfig := internet.StreamConfig{
@@ -192,10 +204,10 @@ func generateConfig() (*core.Config, error) {
 			tlsConfig.Certificate = []*tls.Certificate{&certificate}
 		}
 		streamConfig.SecurityType = serial.GetMessageType(&tlsConfig)
-		streamConfig.SecuritySettings = []*serial.TypedMessage{serial.ToTypedMessage(&tlsConfig)}
+		streamConfig.SecuritySettings = []*anypb.Any{serial.ToTypedMessage(&tlsConfig)}
 	}
 
-	apps := []*serial.TypedMessage{
+	apps := []*anypb.Any{
 		serial.ToTypedMessage(&dispatcher.Config{}),
 		serial.ToTypedMessage(&proxyman.InboundConfig{}),
 		serial.ToTypedMessage(&proxyman.OutboundConfig{}),
@@ -281,6 +293,9 @@ func startV2Ray() (core.Server, error) {
 		}
 		if c, b := opts.Get("path"); b {
 			*path = c
+		}
+		if c, b := opts.Get("serviceName"); b {
+			*serviceName = c
 		}
 		if c, b := opts.Get("cert"); b {
 			*cert = c

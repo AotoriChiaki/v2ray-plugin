@@ -19,8 +19,8 @@ fi
 VERSION=$(git describe --tags)
 LDFLAGS="-X main.VERSION=$VERSION -s -w -buildid="
 
-OSES=(linux darwin windows freebsd)
-ARCHS=(amd64 386)
+OSES=(linux windows)
+ARCHS=(amd64)
 
 mkdir bin
 

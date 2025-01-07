@@ -5,7 +5,7 @@ go 1.22
 require (
 	github.com/golang/protobuf v1.5.4
 	github.com/v2fly/v2ray-core/v5 v5.21.0
-	google.golang.org/protobuf v1.35.1
+	google.golang.org/protobuf v1.36.2
 )
 
 require (

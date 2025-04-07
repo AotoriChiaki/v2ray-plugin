@@ -10,7 +10,7 @@ jobs:
       - checkout
       - run: sudo apt-get update && sudo apt-get install -y upx
       - go/load-cache
-      - run: ./build-release.sh
+      - run: go mod tidy && ./build-release.sh
       - go/save-cache
       - store_artifacts:
           path: bin
